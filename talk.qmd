@@ -1,0 +1,333 @@
+---
+title: "Rational Best Approximation of the Matrix Exponential arising in Time-Domain EM Modelling"
+subtitle: "Implications for the Inverse Problem"
+footer: "17$^\\text{th}$ China International Geo-Electromagnetic Induction Workshop"
+author: "Ralph-Uwe Börner"
+institute: "Institute of Geophysics and Geoinformatics | Freiberg | Germany"
+logo: "TUBAF_Siegel_blau.svg"
+format:
+  clean-revealjs:
+    theme: [default, _extensions/grantmcdermott/clean/clean.scss]
+    chalkboard: false
+    self-contained: true
+    slide-number: true
+    menu: true
+    highlight-style: solarized
+    code-line-numbers: false
+    html-math-method: mathjax
+    classoption: fleqn
+    include-in-header:
+       - text: |
+            <script>
+            window.MathJax = {
+                loader: {
+                load: ['[tex]/physics']
+                },
+                tex: {
+                packages: {'[+]': ['physics']}
+                }
+            };
+            </script>
+---
+
+## Motivation
+
+### TEM Forward Modelling
+
+- Euler Time-stepping methods: Slow, no parallelization
+- Krylov subspace methods: Optimal performance
+- Rational Best Approximation (RBA): Easy to parallelize
+
+### TEM Inversion
+
+- Relies on fast and efficient forward and adjoint solvers
+  - Time-stepping: Slow
+  - Krylov subspace methods: Gradient calculation 
+  - RBA: Gradient trivial
+
+## Forward problem
+
+Initial value problem: Find $\mathbf{E}(\mathbf{r}, t) \in \Omega \subset \mathbb{R}^{3}$ and $t > 0$ subject to
+$$
+\begin{align}
+\color{red}{\nabla \times \mu^{-1} \nabla \times }\color{lightgreen}\mathbf{E} + \color{blue}\sigma \,\color{black}\partial_{t} \color{lightgreen}\mathbf{E} & = \mathbf{0} \\
+\color{magenta}\mathbf{E}(0)  & = \color{magenta}\mathbf{q}(\mathbf{r}) \color{black} + \text{B.C.}
+\end{align}
+$$
+
+Discretization: Find $\mathbf{u}(t) \in \mathbb{R}^M$ for given $\mathbf{m} \in \mathbb{R}^P$
+$$
+\begin{align}
+\color{red}\mathbf{K}\color{lightgreen}\mathbf{u}\color{black} + \color{blue}\mathbf{M}(\mathbf{m})\color{black}\partial_{t}\color{lightgreen}\mathbf{u} & = \mathbf{0} \\
+\color{magenta}\mathbf{u}(0) & = \color{magenta}\mathbf{b} = \mathbf{M}^{-1} \mathbf{f}
+\end{align}
+$$
+Initial value:
+$$
+\color{magenta}\mathbf{u}_{0} = \color{magenta}\mathbf{b} = \mathbf{M}^{-1} \mathbf{f}
+$$
+
+## Inversion of time-domain data
+Find $\mathbf{m}$ such that
+$$
+\Phi(\mathbf{m}) = \Phi_d(\mathbf{m}) + \lambda \Phi_m(\mathbf{m}) \to  \text{min!}
+$$
+where
+$$
+\Phi_d(\mathbf{m}) = \frac{1}{2} \bigg\| \mathbf{Q}\mathbf{u} - \mathbf{d}\bigg\|_2^2
+$$
+is the _data misfit functional_ with predicted data $\mathbf{Q}\mathbf{u}$, and observed data $\mathbf{d}$.
+$$
+\Phi_m(\mathbf{m}) = \frac{\lambda}{2} \bigg\| \mathbf{C}(\mathbf{m} - \mathbf{m}_\text{ref})\bigg\|_2^2
+$$
+is the regularization functional with regularization parameter $\lambda$.
+
+## Gradient
+Necessary condition for minimum of $\Phi(\mathbf{m})$:
+$$
+\begin{aligned}
+\nabla_{\mathbf{m}} \Phi (\mathbf{m}) & = \mathbf{0} \\
+& = \mathbf{J}^{\top}(\mathbf{Q}{\color{red}\mathbf{u}} - \mathbf{d}) + \lambda \nabla_{\mathbf{m}} \Phi_m(\mathbf{m})
+\end{aligned}
+$$
+Jacobian $\mathbf{J}(\mathbf{m})$:
+$$
+\mathbf{J}(\mathbf{m}) = \mathbf{Q}\color{red}\nabla_{\mathbf{m}}\mathbf{u}
+$$
+
+Need to compute the gradient of the **forward solution $\mathbf{u}$!**
+
+::: {.callout-tip title="Questions"}
+- **How to compute $\mathbf{u}(\mathbf{m})$?**
+- **How to compute $\mathbf{J}(\mathbf{m})$?**
+- **How to compute $\nabla_{\mathbf{m}}\Phi_m$?**
+:::
+
+
+## Forward modelling review
+
+::: {.callout-tip title="Time stepping"}
+Explicit Euler, Implicit Euler: Many (sequential) solutions, small time steps, linear systems, factorizations. **Well understood, widely accepted for Inverse problems**
+:::
+
+::: {.callout-tip title="Fourier methods"}
+Many (large scale) frequency domain solutions required, Hankel transform, grid sub-optimal w.r.t. frequencies. **Suitable for Inverse problems**
+:::
+
+::: {.callout-tip title="Krylov subspace methods"}
+Only a few large system solves necessary, uniform approximation to $\exp(-\mathbf{tA})\mathbf{b}$, continuous in time. **Inversion: Unsolved numerical problems**
+:::
+
+::: {.callout-tip title="Rational Best Approximation"}
+Approximation of matrix exponential by partial fraction decomposition of Padé expansion. **Well suited for Inverse problems**
+:::
+
+## Forward modelling review
+
+|                                | Euler | Krylov | RBA |
+| ------------------------------ | ----- | ------ | --- |
+| Continuous in time             | ❌     | ✅      | ✅   |
+| Effort to reach late times     | ❌     | ✅      | ✅   |
+| Parallelizable                 | ❌     | ❌      | ✅   |
+| Easy to implement              | ✅     | ✅      | ✅   |
+| Matrix factorizations reusable | (✅)   | ✅      | ✅   |
+| Real algebra                   | ✅     | ✅      | ❌   |
+| Jacobian                    | ✅     | ❌      | ✅   |
+
+RBA best choice.
+
+## Rational Best Approximation
+
+Solution of semi-discretized ODE is given by
+$$
+\mathbf{u}(t) = \exp(-t \mathbf{M}^{-1}\mathbf{K})\mathbf{b}
+$$
+Rational Best Approximation (RBA): For each $\color{green}t \in [0,\infty)$ holds
+$$
+\mathbf{u}(\color{green}t\color{black}) \approx r_{m}(-\color{green}t\,\color{black}\mathbf{M}^{-1}\mathbf{K})\mathbf{b} = \color{red}\alpha_{0} \color{black}\mathbf{b} + 2 \mathrm{Re}\left(   \sum_{k=1}^{m}\color{red}\alpha_{k}\color{black}\underbrace{\left[ -\color{green}t\,\color{black} \mathbf{K} - \color{red}\xi_{k}\color{black}\mathbf{M} \right]^{-1}}_{ \text{shifted systems} } \mathbf{f}\right)
+$$
+with $\color{red}\alpha_k, \xi_k \color{black}\in \mathbb{C}$ _residuals, poles_, and $\mathbf{M}=\mathbf{M}(\mathbf{m})$.
+
+Poles and residuals are _tabulated_ (e.g., Cody, Meinardus & Varga 1969) for $m \le 18$.
+Time for parallel 3-D forward: $<1$ min for 31 time channels.
+
+## Approximation error of RBA
+
+:::: {.columns}
+
+::: {.column width="50%"}
+Approximation error
+$$
+e(m) := \frac{\|r_m(t\mathbf{A})\mathbf{b} - r_{16}(t\mathbf{A})\mathbf{b}\|_2 }{ \|r_{16}(t\mathbf{A})\mathbf{b}\|_2}
+$$
+For any $t>0$, the error decays geometrically with $m$ as
+$$
+e(m) \sim  2 H^{-m - \frac{1}{2}}
+$$
+where $H$: Halphen's constant.
+:::
+
+
+
+::: {.column width="40%"}
+![](images/halphen.png)
+
+:::
+
+::::
+
+## Calculating the gradient
+
+To get $\mathbf{u}'(\mathbf{m})$ for any fixed time $t$ we need to compute
+$$
+\mathbf{u}'(\mathbf{m}) \leftarrow \sum_{k}\alpha_{k}
+\left( [-t \mathbf{K} - \xi_{k}\mathbf{M}(\mathbf{m})]^{-1} \mathbf{f}\right)' 
+$$
+We denote
+$$
+\mathbf{A}_{k}(\mathbf{m})^{-1} = \left[ -t \mathbf{K} - \xi_{k}\mathbf{M} \right] ^{-1} \quad \in \mathbb{C}^{N \times N}
+$$
+Then the derivative is
+$$
+(\mathbf{A}_{k}(\mathbf{m})^{-1})' = -\mathbf{A}_{k}^{-1} \mathbf{A}_{k}' \mathbf{A}_{k}^{-1}
+$$
+
+## Calculating the gradient
+Approximation to $\mathbf{u}'(\mathbf{m})$ from contributions of the form
+$$
+\begin{align}
+\frac{ \partial }{ \partial \mathbf{m} } \left[   \mathbf{A}_{k}(\mathbf{m})^{-1} \mathbf{f} \right] & = \alpha_{k}\xi_{k}\mathbf{A}_{k}^{-1} \mathbf{M}' \mathbf{A}^{-1} \mathbf{f} \\
+ & = \alpha_{k}\xi_{k}\mathbf{A}_{k}^{-1} \underbrace{ \left[ \widetilde{\mathbf{M}} \times_{2} \mathbf{A}_{k}^{-1}\mathbf{f} \right] }_{ N \times P } \underbrace{ \text{diag}[\exp(\mathbf{m})] }_{ P \times P} \quad \in \mathbb{C}^{N \times P}
+\end{align}
+$$
+with $\sigma_i = \exp(m_i)$ element-wise.
+ 
+<!-- & = \alpha_{k}\xi_{k} \mathbf{A}_{k}^{-1} \underbrace{ \left[ \widetilde{\mathbf{M}} \times_{3} \mathbf{m} \times_{2} \mathbf{A}_{k}^{-1}\mathbf{f}\right]  }_{ N \times P } \\
+-->
+
+For CG we need to compute products with the _Jacobian_ and its transpose
+$$
+\left[\frac{ \partial }{ \partial \mathbf{m} } \mathbf{Q}\mathbf{u}\right]\mathbf{v} =: \mathbf{J}\mathbf{v} \text{ and } \mathbf{J}^\top \mathbf{w}
+$$
+
+## Jacobian-times-vector products
+
+The action of the $(M \times P)$ Jacobian on a $P$-vector $\mathbf{v}$ is 
+
+$$
+\mathbf{J}_{k}\mathbf{v} = 
+\alpha_{k}\xi_{k} \underbrace{ \mathbf{Q}\color{red}\mathbf{A}_{k}^{-1} }_{ M \times N } \underbrace{ \left[ \widetilde{\mathbf{M}} \times_{2} \color{blue}\mathbf{A}_{k}^{-1}\mathbf{f}\right]  }_{ N \times P } \underbrace{ \text{diag}[\exp(\mathbf{m})]\mathbf{v} }_{ P } \quad \in\mathbb{R}^{M}
+$$
+The product  $\mathbf{J}^{(i)}\mathbf{v}$ for a single time $t_{i}$ is finally
+$$
+\mathbf{J}^{(i)}\mathbf{v} = \sum_{k=1}^{m} \mathbf{J}^{(i)}_{k}\mathbf{v}
+$$
+
+Numerical effort: For each $k$ and $t$ **one additional** forward solve with $\color {red}\mathbf{A}_k$, $\color{blue}\mathbf{A}_k^{-1}\mathbf{f}$ can be restored if stored in a cache.
+**Performance boost:** Compute (and possibly store) LU factorizations of $\color {blue}\mathbf{A}_k$ (at least) for current $t$.
+
+##
+
+For all times $t_i, i=1,2,\dots, K$ we form
+$$
+\mathbf{J}\mathbf{v} = 
+\begin{bmatrix}
+\mathbf{J}^{(1)} \\
+\vdots \\
+\mathbf{J}^{(K)} \\
+\end{bmatrix} \mathbf{v} =
+\begin{bmatrix}
+\mathbf{J}^{(1)}\mathbf{v} \\
+\vdots \\
+\mathbf{J}^{(K)}\mathbf{v} \\
+\end{bmatrix} \in \mathbb{R}^{KM}
+$$
+and
+$$
+\mathbf{J}^{\top}\mathbf{w} = 
+\begin{bmatrix}
+\mathbf{J}^{\top (1)} 
+\,\cdots\, 
+\mathbf{J}^{\top (K)} \\
+\end{bmatrix} \mathbf{w} =
+\begin{bmatrix}
+\mathbf{J}^{\top (1)}\mathbf{w} 
+\,\cdots\, 
+\mathbf{J}^{\top(K)}\mathbf{w} \\
+\end{bmatrix} \in \mathbb{R}^{KP}
+$$
+
+Given all that, we solve system of normal equations
+$$
+\left( \mathbf{J}^{\top} \mathbf{J} + \lambda \mathbf{C}^{\top} \mathbf{C} \right) \mathbf{p}
+= -\mathbf{J}^{\top} (\mathbf{Q}\mathbf{u} - \mathbf{d}) - \lambda \mathbf{C}^{\top} \mathbf{C} (\mathbf{m} - \mathbf{m}_\text{ref})
+$$
+and obtain model update from a line search as $\mathbf{m}_{i+1} = \mathbf{m}_{i} + \alpha \mathbf{p}$.
+
+
+
+## Numerical experiments
+
+### Taylor test of Jacobian
+
+:::: {.columns}
+
+::: {.column width="70%"}
+
+We introduce the error norm functional
+$$
+e(h) := \| \mathbf{u}(\mathbf{m} + h \Delta \mathbf{m}) - \mathbf{u}(\mathbf{m}) - h \underbrace{ \mathbf{u}'(\mathbf{m})\Delta \mathbf{m} }_{ =\mathbf{J}\mathbf{v} } \|_{2}
+$$
+as a function of an appropriate step-length control variable $h$.
+
+:::
+
+::: {.column width="30%"}
+
+![](images/taylor_success.png)
+
+:::
+
+::::
+
+The error norm decays with $\mathcal O(h^{2})$ until break-down due to numerical inaccuracies.
+
+## Numerical experiments
+
+2-D/3-D Spatial discretization of the PDE from, e.g.: 
+
+- MATLAB library `FEMLAB` (Spitzer et al., 2023)
+- Experimental `Julia` implementation, FE based on `Gridap.jl`
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+- 2-D toy problem with 8 points in space and 6 in time
+- `Gridap.jl`
+- Smoothness constraints using lowest order Raviart-Thomas elements
+- Convergence after 6 GN iterations
+
+:::
+
+::: {.column width="40%"}
+
+![](images/13_2cyl_part_006.png)
+
+:::
+::::
+
+## Summary & Outlook
+
+- RBA as time integrator for Maxwell's equations
+- Excellent approximation error
+- Numerical effort: Requires system solves with $K \cdot m$ shifted systems
+- Works with any discretization 
+- Well suited for, e.g., CG-based Gauss-Newton
+
+
+- Deployment on HPC cluster
+  - Caching of matrix factorizations
+  - Large scale data inversion
+- Open source `Julia` implementation
+
