@@ -7,6 +7,7 @@ institute: "Institute of Geophysics and Geoinformatics | Freiberg | Germany"
 logo: "TUBAF_Siegel_blau.svg"
 format:
   clean-revealjs:
+    output-dir: /docs
     theme: [default, _extensions/grantmcdermott/clean/clean.scss]
     chalkboard: false
     self-contained: true
