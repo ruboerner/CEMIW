@@ -6,7 +6,7 @@ These are my slides presented at the 17th Chinese Electromagnetic Induction Work
 
 ## Citation
 
-If you use this material, please cite is as
+If you use this material, please cite it as
 
 ```
 @misc{boerner2025,
