@@ -4,10 +4,9 @@ subtitle: "Implications for the Inverse Problem"
 footer: "17$^\\text{th}$ China International Geo-Electromagnetic Induction Workshop"
 author: "Ralph-Uwe Börner"
 institute: "Institute of Geophysics and Geoinformatics | Freiberg | Germany"
-logo: "TUBAF_Siegel_blau.svg"
+logo: "images/TUBAF_Siegel_blau.svg"
 format:
   clean-revealjs:
-    output-dir: /docs
     theme: [default, _extensions/grantmcdermott/clean/clean.scss]
     chalkboard: false
     self-contained: true
