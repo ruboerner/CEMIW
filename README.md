@@ -16,6 +16,7 @@ howpublished = {Talk presented at the 17th Chinese Electromagnetic Induction Wor
 address = {Hangzhou, China},
 month = {April},
 year = {2025},
+doi = {\url{https://doi.org/10.5281/zenodo.15267646}}
 note = {Slides available at \url{https://ruboerner.github.io/CEMIW}}
 }
 ```
