@@ -6,6 +6,11 @@ These are my slides presented at the 17th Chinese Electromagnetic Induction Work
 
 ## Citation
 
+> **Note:** I am currently preparing a manuscript based on this work for submission to a peer-reviewed journal.  
+> In the meantime, you’re welcome to use this repository as a source of information,  
+> but please do not reproduce or redistribute any of the material here until  
+> the paper has been formally published.  
+
 If you use this material, please cite it as
 
 ```
